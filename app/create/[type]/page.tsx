@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { FileText, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
 import { loadInvitationDraft, saveInvitationDraft } from "@/lib/invitationDraft";
+import { INVITATION_TEMPLATES } from "@/lib/templates";
 
 export default function CreateInvitationPage() {
   const params = useParams();
@@ -203,17 +204,17 @@ export default function CreateInvitationPage() {
               
               <div className="space-y-2">
                 <label className="text-sm font-medium">Template Style</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {['classic', 'modern', 'playful', 'minimal'].map((tpl) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {Object.values(INVITATION_TEMPLATES).map((tpl) => (
                     <button
-                      key={tpl}
-                      onClick={() => setFormData(prev => ({ ...prev, template: tpl }))}
+                      key={tpl.id}
+                      onClick={() => setFormData(prev => ({ ...prev, template: tpl.id, themeColor: tpl.fallbackBackground }))}
                       className={`py-2 px-3 rounded-lg border text-sm capitalize transition-all ${
-                        formData.template === tpl ? "border-primary bg-primary/10 text-primary" : "border-white/10 hover:border-white/30"
+                        formData.template === tpl.id ? "border-primary bg-primary/10 text-primary" : "border-white/10 hover:border-white/30"
                       }`}
                       type="button"
                     >
-                      {tpl}
+                      {tpl.label}
                     </button>
                   ))}
                 </div>

@@ -8,6 +8,8 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
+import { TemplateDecorations } from "./Decorations";
 
 export type InvitationPreviewData = {
   title: string;
@@ -34,16 +36,17 @@ export function InvitationScene({ data, type }: InvitationSceneProps) {
   const opacity = interpolate(entrance, [0, 1], [0, 1]);
   const scale = interpolate(entrance, [0, 1], [0.96, 1]);
 
-  const isModern = data.template === "modern";
-  const foreground = isModern ? "#fafafa" : "#0f172a";
-  const fallbackBackground = isModern ? "#18181b" : "#ffffff";
+  const config = INVITATION_TEMPLATES[data.template as TemplateStyle] || INVITATION_TEMPLATES.modern;
+  const foreground = config.foreground;
+  const fallbackBackground = config.fallbackBackground;
+  const isDarkBg = ["modern", "indian", "elegant"].includes(config.id);
 
   return (
     <AbsoluteFill
       style={{
         background: `radial-gradient(circle at top, ${data.themeColor}44, ${fallbackBackground} 62%)`,
         color: foreground,
-        fontFamily: isModern ? "Inter, sans-serif" : "Georgia, serif",
+        fontFamily: config.fontFamily,
       }}
     >
       {data.uploadedCard ? (
@@ -55,50 +58,7 @@ export function InvitationScene({ data, type }: InvitationSceneProps) {
           <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.45))" }} />
         </AbsoluteFill>
       ) : null}
-
-      {data.template === "classic" ? (
-        <AbsoluteFill
-          style={{
-            margin: 24,
-            borderRadius: 28,
-            border: `12px double ${foreground}22`,
-            pointerEvents: "none",
-          }}
-        />
-      ) : null}
-
-      {data.template === "minimal" ? (
-        <AbsoluteFill
-          style={{
-            width: 8,
-            marginTop: 40,
-            marginBottom: 40,
-            marginLeft: 40,
-            borderRadius: 999,
-            background: `linear-gradient(180deg, ${data.themeColor}, transparent)`,
-          }}
-        />
-      ) : null}
-
-      {data.template === "playful" ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 28,
-            left: 0,
-            right: 0,
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "0 48px",
-            fontSize: 34,
-            opacity: 0.45,
-          }}
-        >
-          <span>✨</span>
-          <span>🎉</span>
-          <span>✨</span>
-        </div>
-      ) : null}
+      <TemplateDecorations template={config.id} color={foreground} />
 
       <AbsoluteFill
         style={{
@@ -119,7 +79,7 @@ export function InvitationScene({ data, type }: InvitationSceneProps) {
             border: `1px solid ${foreground}18`,
             background: data.uploadedCard
               ? "rgba(255,255,255,0.08)"
-              : isModern
+              : isDarkBg
                 ? "rgba(24,24,27,0.82)"
                 : "rgba(255,255,255,0.9)",
             backdropFilter: "blur(20px)",

@@ -4,6 +4,8 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { InvitationPreviewData } from "@/components/InvitationScene";
+import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
+import { TemplateDecorations } from "./Decorations";
 
 type InvitationArtworkProps = {
   data: InvitationPreviewData;
@@ -13,13 +15,19 @@ type InvitationArtworkProps = {
 
 export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtworkProps>(
   function InvitationArtwork({ data, type, className }, ref) {
+    const config = INVITATION_TEMPLATES[data.template as TemplateStyle] || INVITATION_TEMPLATES.modern;
+
     return (
       <motion.div
         ref={ref}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className={className}
-        style={{ backgroundColor: data.themeColor || (data.template === "modern" ? "#18181b" : "#ffffff") }}
+        style={{ 
+          backgroundColor: data.themeColor || config.fallbackBackground,
+          color: config.foreground,
+          fontFamily: config.fontFamily
+        }}
       >
         {data.uploadedCard ? (
           <div className="absolute inset-0">
@@ -33,22 +41,7 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
             <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/40" />
           </div>
         ) : null}
-
-        {data.template === "classic" && (
-          <div className="absolute top-0 left-0 h-full w-full rounded-xl border-8 border-double border-current opacity-20 pointer-events-none" />
-        )}
-
-        {data.template === "playful" && (
-          <div className="absolute top-0 flex w-full justify-around p-4 opacity-50 pointer-events-none">
-            <span className="text-2xl">✨</span>
-            <span className="text-2xl">🎊</span>
-            <span className="text-2xl">✨</span>
-          </div>
-        )}
-
-        {data.template === "minimal" && (
-          <div className="absolute top-0 left-0 h-full w-1 bg-current opacity-20 pointer-events-none" />
-        )}
+        <TemplateDecorations template={config.id} color={config.foreground} />
 
         <motion.div
           key={data.title}
@@ -60,11 +53,11 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
             {type} invitation
           </div>
 
-          <h1 className={`mb-8 w-full break-words text-4xl font-bold ${data.template === "classic" ? "font-serif" : "font-sans"}`}>
+          <h1 className="mb-8 w-full break-words text-4xl font-bold" style={{ fontFamily: config.fontFamily }}>
             {data.title || "Your Event Title"}
           </h1>
 
-          <p className={`mb-8 whitespace-pre-line text-lg ${data.template === "classic" ? "italic opacity-80" : "opacity-90"}`}>
+          <p className="mb-8 whitespace-pre-line text-lg opacity-90" style={{ fontFamily: config.fontFamily }}>
             {data.message || "Join us to celebrate this special occasion with joy and happiness."}
           </p>
 

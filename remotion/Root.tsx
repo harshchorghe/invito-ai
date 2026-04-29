@@ -1,6 +1,7 @@
 import { Composition, registerRoot } from "remotion";
 import { InvitationScene } from "../components/InvitationScene";
 import { DEFAULT_INVITATION_DRAFT } from "../lib/invitationDraft";
+import "./fonts.css";
 
 const RemotionRoot = () => {
   return (
