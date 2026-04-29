@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.454",
     "@remotion/player": "^4.0.454",
+    "@remotion/renderer": "^4.0.454",
     "clsx": "^2.1.1",
     "firebase": "^12.12.1",
     "framer-motion": "^12.38.0",

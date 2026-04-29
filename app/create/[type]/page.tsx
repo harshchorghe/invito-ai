@@ -1,27 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/Input";
 import { CanvasPreview } from "@/components/CanvasPreview";
+import { Button } from "@/components/ui/Button";
+import { FileText, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import type { InvitationOutputFormat } from "@/lib/invitationDraft";
+import { loadInvitationDraft, saveInvitationDraft } from "@/lib/invitationDraft";
 
 export default function CreateInvitationPage() {
   const params = useParams();
+  const router = useRouter();
   const type = params.type as string;
 
-  const [formData, setFormData] = useState({
-    title: "",
-    hostName: "",
-    date: "",
-    time: "",
-    venue: "",
-    message: "",
-    themeColor: "#ffffff",
-    template: "classic",
-    uploadedCard: "",
-  });
+  const [formData, setFormData] = useState(() => loadInvitationDraft(type));
+  const [outputFormat, setOutputFormat] = useState<InvitationOutputFormat>("image");
+
+  useEffect(() => {
+    saveInvitationDraft(type, formData);
+  }, [formData, type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -48,6 +48,37 @@ export default function CreateInvitationPage() {
   const colors = [
     "#ffffff", "#fef08a", "#fbcfe8", "#bfdbfe", "#bbf7d0", "#e9d5ff", "#fecaca"
   ];
+
+  const outputOptions: Array<{
+    value: InvitationOutputFormat;
+    label: string;
+    description: string;
+    icon: JSX.Element;
+  }> = [
+    {
+      value: "image",
+      label: "Image",
+      description: "Download a shareable PNG version.",
+      icon: <ImageIcon size={16} />,
+    },
+    {
+      value: "pdf",
+      label: "PDF",
+      description: "Create a print-ready PDF file.",
+      icon: <FileText size={16} />,
+    },
+    {
+      value: "mp4",
+      label: "MP4",
+      description: "Open the animated video screen.",
+      icon: <VideoIcon size={16} />,
+    },
+  ];
+
+  const handleGenerate = () => {
+    saveInvitationDraft(type, formData);
+    router.push(`/create/${type}/generate/${outputFormat}`);
+  };
 
   return (
     <div className="flex-1 w-full mx-auto p-6 h-[calc(100vh-64px)]" style={{ maxWidth: 1600 }}>
@@ -205,6 +236,42 @@ export default function CreateInvitationPage() {
                   ))}
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Generate As</label>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {outputOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setOutputFormat(option.value)}
+                      className={`rounded-xl border p-4 text-left transition-all ${
+                        outputFormat === option.value
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-white/10 hover:border-white/30"
+                      }`}
+                    >
+                      <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                        {option.icon}
+                        {option.label}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-sm font-medium">Preview stays here.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The selected format opens a separate screen so the editor does not get crowded.
+                </p>
+              </div>
+
+              <Button onClick={handleGenerate} className="w-full gap-2">
+                <VideoIcon size={16} />
+                Generate {outputFormat.toUpperCase()}
+              </Button>
             </div>
           </motion.div>
         </div>
