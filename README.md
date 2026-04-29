@@ -1,32 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎉 Invito-AI — Smart Invitation Card Generator
 
-## Getting Started
+Invito-AI is an AI-powered invitation card generator built with Next.js that allows users to create beautiful, customizable invitations in seconds.
+From selecting templates to generating content using AI, Invito-AI simplifies the entire invitation creation process.
 
-First, run the development server:
+---
+
+## 🚀 Live Demo
+
+🌐 **Deployed on Vercel:**
+👉 https://your-vercel-url.vercel.app
+
+---
+
+## ✨ Features
+
+* 🎨 **Template-Based Design System**
+  Choose from multiple modern, elegant invitation templates
+
+* 🤖 **AI-Powered Content Generation**
+  Generate invitation text using AI (Gemini integration)
+
+* 📝 **Dynamic Form System**
+  Forms adapt based on event type (wedding, birthday, etc.)
+
+* 🗺️ **Location Integration (Upcoming/Partial)**
+  Add venue location and enable navigation support
+
+* 📱 **Responsive Design**
+  Works seamlessly across mobile, tablet, and desktop
+
+* 🔐 **Authentication System**
+  Secure login/signup using Firebase Authentication
+
+* ⚡ **Fast Performance**
+  Built with Next.js App Router + Tailwind CSS
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** Next.js (App Router), React, TypeScript
+* **Styling:** Tailwind CSS
+* **Authentication:** Firebase Auth
+* **AI Integration:** Google Gemini API
+* **Deployment:** Vercel
+
+---
+
+## 📂 Project Structure (Simplified)
+
+```
+app/
+components/
+templates/
+lib/
+public/
+```
+
+---
+
+## ⚙️ Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/invito-ai.git
+cd invito-ai
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+### 3. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open 👉 http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Firebase Authentication Setup
 
-## Firebase Auth Setup
+This project uses Firebase for authentication.
 
-This app now uses Firebase Authentication for the login and signup flow.
+### Step 1: Create a Firebase Project
 
-Create a Firebase project, enable Email/Password authentication, and add these environment variables in your local `.env.local` file:
+* Go to Firebase Console
+* Enable **Email/Password Authentication**
 
-```bash
+### Step 2: Add Environment Variables
+
+Create a `.env.local` file and add:
+
+```env
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -35,19 +110,84 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
-After that, run the app and use `/signup` to create a new account or `/login` to sign in.
+---
 
-## Learn More
+## 🤖 AI Integration (Gemini)
 
-To learn more about Next.js, take a look at the following resources:
+To enable AI features:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Get your API key from Google AI Studio
+2. Add to `.env.local`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+GEMINI_API_KEY=your_api_key_here
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📦 Available Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # Run development server
+npm run build    # Build for production
+npm start        # Start production server
+```
+
+---
+
+## 🌍 Deployment
+
+This project is deployed on **Vercel** for fast and scalable hosting.
+
+### Deploy your own:
+
+* Push your code to GitHub
+* Import project in Vercel
+* Add environment variables
+* Click Deploy 🚀
+
+---
+
+## 📸 Future Enhancements
+
+* 🎥 Video/Animated Invitation Export
+* 🧠 NLP-based template generation
+* 📍 Advanced map & navigation integration
+* 🎨 Custom template builder
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repo
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 🙌 Acknowledgements
+
+* Next.js Team
+* Firebase
+* Google Gemini AI
+* Open-source community ❤️
+
+---
+
+## 👨‍💻 Author
+
+**Harsh Chorghe**
+📧 Connect with me for collaborations and ideas!
+
+---
+
+⭐ If you like this project, don’t forget to star the repo!
