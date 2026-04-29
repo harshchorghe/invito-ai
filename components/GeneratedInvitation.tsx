@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FileText, Image as ImageIcon, Video as VideoIcon, Download, ArrowLeft } from "lucide-react";
+import { FileText, Image as ImageIcon, Video as VideoIcon, Download, ArrowLeft, Share2, Check, Copy } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import jsPDF from "jspdf";
 import { Button } from "./ui/Button";
 import type { InvitationPreviewData } from "@/components/InvitationScene";
 import { InvitationArtwork } from "./InvitationArtwork";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
+import { useAuth } from "./AuthProvider";
+import { saveInvitationToDb } from "@/lib/invitationStore";
 
 type GeneratedInvitationProps = {
   data: InvitationPreviewData;
@@ -28,6 +30,11 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
   const [isGenerating, setIsGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [hasCopied, setHasCopied] = useState(false);
 
   const formatIcon = useMemo(() => {
     if (format === "pdf") return <FileText size={16} />;
@@ -84,6 +91,28 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
     link.href = videoUrl;
     link.download = `invito-${type}-${Date.now()}.mp4`;
     link.click();
+  };
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    setShareUrl(null);
+    try {
+      const id = await saveInvitationToDb(data, type, format, user?.uid || null);
+      const url = `${window.location.origin}/preview/${id}`;
+      setShareUrl(url);
+    } catch (error) {
+      console.error("Failed to share", error);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      setHasCopied(true);
+      setTimeout(() => setHasCopied(false), 2000);
+    }
   };
 
   useEffect(() => {
@@ -239,6 +268,29 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
                 <Download size={16} />
                 {isGenerating ? "Generating..." : "Download MP4"}
               </Button>
+            )}
+
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              className="w-full gap-2 mt-3"
+              disabled={isSharing || (format === "mp4" && (!videoUrl || isGenerating))}
+            >
+              <Share2 size={16} />
+              {isSharing ? "Creating Link..." : "Create Shareable Link"}
+            </Button>
+
+            {shareUrl && (
+              <div className="mt-4 p-3 rounded-xl bg-black/60 border border-white/10 flex items-center gap-2">
+                <div className="text-xs text-muted-foreground truncate flex-1">{shareUrl}</div>
+                <button
+                  onClick={handleCopyLink}
+                  className="p-1.5 rounded-md hover:bg-white/10 text-primary transition-colors"
+                  title="Copy link"
+                >
+                  {hasCopied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                </button>
+              </div>
             )}
           </div>
 
