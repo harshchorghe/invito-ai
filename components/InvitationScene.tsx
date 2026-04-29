@@ -12,6 +12,7 @@ import { INVITATION_TEMPLATES, type TemplateStyle } from "../lib/templates";
 import { TemplateDecorations } from "./Decorations";
 
 export type InvitationPreviewData = {
+  id?: string;
   title: string;
   hostName: string;
   date: string;

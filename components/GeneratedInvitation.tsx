@@ -9,7 +9,7 @@ import type { InvitationPreviewData } from "@/components/InvitationScene";
 import { InvitationArtwork } from "./InvitationArtwork";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
 import { useAuth } from "./AuthProvider";
-import { saveInvitationToDb } from "@/lib/invitationStore";
+import { saveInvitationToDb, updateInvitationInDb } from "@/lib/invitationStore";
 
 type GeneratedInvitationProps = {
   data: InvitationPreviewData;
@@ -97,7 +97,12 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
     setIsSharing(true);
     setShareUrl(null);
     try {
-      const id = await saveInvitationToDb(data, type, format, user?.uid || null);
+      let id = data.id;
+      if (id) {
+        await updateInvitationInDb(id, data, type, format, user?.uid || null);
+      } else {
+        id = await saveInvitationToDb(data, type, format, user?.uid || null);
+      }
       const url = `${window.location.origin}/preview/${id}`;
       setShareUrl(url);
     } catch (error) {

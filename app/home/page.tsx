@@ -1,22 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Plus, Gift, Heart, Store, Calendar as CalendarIcon, Clock, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
+import { getUserInvitations, type UserInvitationMeta } from "@/lib/invitationStore";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+
+  const [recentInvites, setRecentInvites] = useState<UserInvitationMeta[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login");
     }
   }, [loading, router, user]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      getUserInvitations(user.uid)
+        .then(data => setRecentInvites(data))
+        .catch(err => console.error("Error fetching invites:", err))
+        .finally(() => setLoadingInvites(false));
+    }
+  }, [user]);
 
   if (loading || !user) {
     return null;
@@ -29,10 +42,7 @@ export default function DashboardPage() {
     { id: "custom", title: "Custom Event", icon: <CalendarIcon className="w-6 h-6 text-purple-500" />, color: "bg-purple-500/10 border-purple-500/20" },
   ];
 
-  const recentInvites = [
-    { id: 1, title: "Sarah's 25th Birthday", type: "Birthday", date: "Oct 24, 2026", status: "Draft" },
-    { id: 2, title: "John & Emma Wedding", type: "Wedding", date: "Nov 12, 2026", status: "Completed" },
-  ];
+
 
   return (
     <div className="flex-1 max-w-7xl mx-auto w-full p-6 pt-12">
@@ -80,35 +90,45 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
-          {recentInvites.map((invite, idx) => (
+          {loadingInvites ? (
+            <div className="col-span-full text-center py-12 text-muted-foreground">Loading your invitations...</div>
+          ) : recentInvites.map((invite, idx) => (
             <motion.div
               key={invite.id}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + idx * 0.1 }}
-              className="glass border border-white/10 rounded-2xl p-5 hover:border-primary/50 transition-colors group cursor-pointer"
+              className="glass border border-white/10 rounded-2xl p-5 hover:border-primary/50 transition-colors group h-full"
             >
               <div className="aspect-video bg-zinc-900 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
                 <span className="text-zinc-600 text-sm">Preview Thumbnail</span>
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="secondary" size="sm">Edit</Button>
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Link href={`/preview/${invite.invitationId}`}>
+                    <Button variant="secondary" size="sm">View</Button>
+                  </Link>
+                  <Link href={`/create/${invite.type}?edit=${invite.invitationId}`}>
+                    <Button variant="default" size="sm">Edit</Button>
+                  </Link>
                 </div>
               </div>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-lg truncate">{invite.title}</h3>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1"><Clock size={12}/> {invite.date}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                      {invite.type}
-                    </span>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-lg truncate">{invite.title}</h3>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock size={12}/> 
+                        {invite.createdAt?.toDate ? new Date(invite.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
+                        {invite.type}
+                      </span>
+                    </div>
                   </div>
+                  <Button variant="ghost" size="icon" className="-mr-2 -mt-1 rounded-full">
+                    <MoreHorizontal size={16} />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" className="-mr-2 -mt-1 rounded-full">
-                  <MoreHorizontal size={16} />
-                </Button>
-              </div>
-            </motion.div>
+              </motion.div>
           ))}
           
           <Link href="/create/custom" className="block h-full">

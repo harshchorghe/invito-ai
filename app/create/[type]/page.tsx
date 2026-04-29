@@ -11,6 +11,7 @@ import { FileText, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
 import { loadInvitationDraft, saveInvitationDraft } from "@/lib/invitationDraft";
 import { INVITATION_TEMPLATES } from "@/lib/templates";
+import { getInvitationFromDb } from "@/lib/invitationStore";
 
 export default function CreateInvitationPage() {
   const params = useParams();
@@ -23,6 +24,19 @@ export default function CreateInvitationPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const editId = searchParams.get("edit");
+      if (editId) {
+        getInvitationFromDb(editId).then(invite => {
+          if (invite && invite.data) {
+            setFormData({ ...invite.data, id: invite.id });
+            setOutputFormat(invite.format);
+          }
+        }).catch(console.error);
+      }
+    }
   }, []);
 
   useEffect(() => {
