@@ -56,15 +56,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const displayName = name.trim();
     if (displayName) {
+      console.log("Updating profile with display name:", displayName);
       await updateProfile(userCredential.user, { displayName });
     }
 
+    console.log("Attempting to create user document in Firestore. db exists:", !!db);
     if (db) {
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        name: displayName || email.split("@")[0],
-        email,
-        createdAt: serverTimestamp(),
-      });
+      try {
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name: displayName || email.split("@")[0],
+          email,
+          createdAt: serverTimestamp(),
+        });
+        console.log("Successfully created user document for UID:", userCredential.user.uid);
+      } catch (err) {
+        console.error("Error creating user document in Firestore:", err);
+        throw err;
+      }
     }
   };
 
