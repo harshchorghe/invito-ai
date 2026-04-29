@@ -7,6 +7,16 @@ import { InvitationArtwork } from "@/components/InvitationArtwork";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
+
+const VenueMap = dynamic(() => import("@/components/VenueMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 mt-8 glass border border-white/10 rounded-2xl flex items-center justify-center">
+      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+    </div>
+  ),
+});
 
 export default function PreviewPage() {
   const params = useParams();
@@ -93,6 +103,10 @@ export default function PreviewPage() {
               }`}
             />
           </div>
+
+          {invitation.data.venue && (
+            <VenueMap venue={invitation.data.venue} />
+          )}
         </motion.div>
       </div>
     </div>

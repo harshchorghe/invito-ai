@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, where, deleteDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import type { InvitationPreviewData } from "@/components/InvitationScene";
 import type { InvitationOutputFormat } from "./invitationDraft";
@@ -122,4 +122,18 @@ export const getUserInvitations = async (userId: string): Promise<UserInvitation
     id: doc.id,
     ...doc.data()
   })) as UserInvitationMeta[];
+};
+
+export const deleteUserInvitation = async (userId: string, metaId: string, invitationId: string): Promise<void> => {
+  if (!db) {
+    throw new Error("Firestore is not initialized.");
+  }
+
+  // Delete the meta document from the user's collection
+  const metaRef = doc(db, "users", userId, "invitations", metaId);
+  await deleteDoc(metaRef);
+
+  // Delete the main public invitation document
+  const invitationRef = doc(db, "invitations", invitationId);
+  await deleteDoc(invitationRef);
 };

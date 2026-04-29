@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/Input";
 import { CanvasPreview } from "@/components/CanvasPreview";
 import { Button } from "@/components/ui/Button";
-import { FileText, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { FileText, Image as ImageIcon, Video as VideoIcon, MapPin, Loader2 } from "lucide-react";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
 import { loadInvitationDraft, saveInvitationDraft } from "@/lib/invitationDraft";
 import { INVITATION_TEMPLATES } from "@/lib/templates";
@@ -22,6 +22,11 @@ export default function CreateInvitationPage() {
   const [outputFormat, setOutputFormat] = useState<InvitationOutputFormat>("image");
   const [isMounted, setIsMounted] = useState(false);
 
+  const [venueSearch, setVenueSearch] = useState("");
+  const [venueResults, setVenueResults] = useState<{ display_name: string }[]>([]);
+  const [isSearchingVenue, setIsSearchingVenue] = useState(false);
+  const [showVenueResults, setShowVenueResults] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
     
@@ -33,6 +38,7 @@ export default function CreateInvitationPage() {
           if (invite && invite.data) {
             setFormData({ ...invite.data, id: invite.id });
             setOutputFormat(invite.format);
+            setVenueSearch(invite.data.venue || "");
           }
         }).catch(console.error);
       }
@@ -42,8 +48,36 @@ export default function CreateInvitationPage() {
   useEffect(() => {
     if (isMounted) {
       saveInvitationDraft(type, formData);
+      if (!venueSearch && formData.venue) {
+        setVenueSearch(formData.venue);
+      }
     }
   }, [formData, type, isMounted]);
+
+  useEffect(() => {
+    if (!venueSearch || venueSearch === formData.venue) {
+      setVenueResults([]);
+      setShowVenueResults(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingVenue(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venueSearch)}&limit=5`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setVenueResults(data || []);
+        setShowVenueResults(true);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearchingVenue(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [venueSearch, formData.venue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -202,15 +236,46 @@ export default function CreateInvitationPage() {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Venue Location</label>
+              <div className="space-y-2 relative">
+                <label className="text-sm font-medium flex items-center justify-between">
+                  <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" /> Venue Location</span>
+                  {isSearchingVenue && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+                </label>
                 <Input 
-                  name="venue" 
-                  value={formData.venue} 
-                  onChange={handleChange} 
-                  placeholder="e.g. 123 Celebration Ave, NY" 
+                  value={venueSearch}
+                  onChange={(e) => {
+                    setVenueSearch(e.target.value);
+                    handleChange({ target: { name: 'venue', value: e.target.value } } as any);
+                  }}
+                  onFocus={() => {
+                     if (venueResults.length > 0) setShowVenueResults(true);
+                  }}
+                  onBlur={() => {
+                     setTimeout(() => setShowVenueResults(false), 200);
+                  }}
+                  placeholder="e.g. Times Square, NY" 
                   className="bg-black/20"
+                  autoComplete="off"
                 />
+                
+                {showVenueResults && venueResults.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                    {venueResults.map((res, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-primary/20 hover:text-white border-b border-white/5 last:border-0 transition-colors"
+                        onClick={() => {
+                          setVenueSearch(res.display_name);
+                          setFormData(prev => ({ ...prev, venue: res.display_name }));
+                          setShowVenueResults(false);
+                        }}
+                      >
+                        {res.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">

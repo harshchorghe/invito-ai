@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Plus, Gift, Heart, Store, Calendar as CalendarIcon, Clock, MoreHorizontal } from "lucide-react";
+import { Plus, Gift, Heart, Store, Calendar as CalendarIcon, Clock, Trash2 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-import { getUserInvitations, type UserInvitationMeta } from "@/lib/invitationStore";
+import { getUserInvitations, deleteUserInvitation, type UserInvitationMeta } from "@/lib/invitationStore";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -30,6 +30,20 @@ export default function DashboardPage() {
         .finally(() => setLoadingInvites(false));
     }
   }, [user]);
+
+  const handleDelete = async (inviteId: string, metaId: string) => {
+    if (!user?.uid) return;
+    
+    if (window.confirm("Are you sure you want to delete this invitation? This action cannot be undone.")) {
+      try {
+        await deleteUserInvitation(user.uid, metaId, inviteId);
+        setRecentInvites(prev => prev.filter(inv => inv.id !== metaId));
+      } catch (err) {
+        console.error("Failed to delete invitation:", err);
+        alert("Failed to delete invitation. Please check your network and permissions.");
+      }
+    }
+  };
 
   if (loading || !user) {
     return null;
@@ -124,8 +138,13 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="-mr-2 -mt-1 rounded-full">
-                    <MoreHorizontal size={16} />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="-mr-2 -mt-1 rounded-full text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                    onClick={() => handleDelete(invite.invitationId, invite.id)}
+                  >
+                    <Trash2 size={16} />
                   </Button>
                 </div>
               </motion.div>
