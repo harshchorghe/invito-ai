@@ -1,11 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Plus, Gift, Heart, Store, Calendar as CalendarIcon, Clock, MoreHorizontal } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, router, user]);
+
+  if (loading || !user) {
+    return null;
+  }
+
   const categories = [
     { id: "wedding", title: "Wedding", icon: <Heart className="w-6 h-6 text-pink-500" />, color: "bg-pink-500/10 border-pink-500/20" },
     { id: "birthday", title: "Birthday", icon: <Gift className="w-6 h-6 text-blue-500" />, color: "bg-blue-500/10 border-blue-500/20" },
@@ -22,7 +38,9 @@ export default function DashboardPage() {
     <div className="flex-1 max-w-7xl mx-auto w-full p-6 pt-12">
       <div className="flex justify-between items-end mb-10">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome back, Creator!</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome back, {user?.displayName?.trim() || user?.email?.split("@")[0] || "Creator"}!
+          </h1>
           <p className="text-muted-foreground">What are we celebrating today?</p>
         </div>
         <Link href="/create/custom">
@@ -98,7 +116,7 @@ export default function DashboardPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="h-full min-h-[250px] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+              className="h-full min-h-64 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
             >
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
                 <Plus size={24} />

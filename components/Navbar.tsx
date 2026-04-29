@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Loader2, LogOut, Sparkles, UserCircle2 } from "lucide-react";
 import { Button } from "./ui/Button";
+import { useAuth } from "@/components/AuthProvider";
 
 export function Navbar() {
+  const router = useRouter();
+  const { user, loading, signOut } = useAuth();
+
+  const displayName =
+    user?.displayName?.trim() || user?.email?.split("@")[0] || "Creator";
+
   return (
     <motion.nav 
       initial={{ y: -100 }}
@@ -27,12 +35,39 @@ export function Navbar() {
         </div>
         
         <div className="flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="ghost" className="hidden sm:inline-flex">Sign In</Button>
-          </Link>
-          <Link href="/signup">
-            <Button>Get Started</Button>
-          </Link>
+          {loading ? (
+            <Button variant="ghost" className="hidden sm:inline-flex" disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading
+            </Button>
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 bg-black/10 text-sm text-muted-foreground">
+                <UserCircle2 className="h-4 w-4 text-primary" />
+                <span className="max-w-35 truncate">{displayName}</span>
+              </div>
+              <Button
+                variant="ghost"
+                className="hidden sm:inline-flex"
+                onClick={async () => {
+                  await signOut();
+                  router.push("/");
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" className="hidden sm:inline-flex">Sign In</Button>
+              </Link>
+              <Link href="/signup">
+                <Button>Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </motion.nav>

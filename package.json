@@ -11,6 +11,7 @@
   "dependencies": {
     "@remotion/player": "^4.0.454",
     "clsx": "^2.1.1",
+    "firebase": "^12.12.1",
     "framer-motion": "^12.38.0",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
