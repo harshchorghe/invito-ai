@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/Input";
 import { CanvasPreview } from "@/components/CanvasPreview";
@@ -12,12 +13,14 @@ export default function CreateInvitationPage() {
 
   const [formData, setFormData] = useState({
     title: "",
+    hostName: "",
     date: "",
     time: "",
     venue: "",
     message: "",
     themeColor: "#ffffff",
     template: "classic",
+    uploadedCard: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -25,12 +28,29 @@ export default function CreateInvitationPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCardUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        uploadedCard: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const colors = [
     "#ffffff", "#fef08a", "#fbcfe8", "#bfdbfe", "#bbf7d0", "#e9d5ff", "#fecaca"
   ];
 
   return (
-    <div className="flex-1 max-w-[1600px] w-full mx-auto p-6 h-[calc(100vh-64px)]">
+    <div className="flex-1 w-full mx-auto p-6 h-[calc(100vh-64px)]" style={{ maxWidth: 1600 }}>
       <div className="flex flex-col lg:flex-row gap-8 h-full">
         
         {/* Left Pane: Editor */}
@@ -45,12 +65,61 @@ export default function CreateInvitationPage() {
             
             <div className="space-y-6">
               <div className="space-y-2">
+                <label className="text-sm font-medium">Upload Physical Invitation Card</label>
+                <label className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-white/15 bg-black/15 px-4 py-6 text-center cursor-pointer hover:border-primary/50 hover:bg-black/20 transition-colors">
+                  <div>
+                    <p className="font-medium">Drop or choose a card image</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      JPG, PNG, or WEBP. This becomes the reference for the live preview.
+                    </p>
+                  </div>
+                  <Input type="file" accept="image/*" onChange={handleCardUpload} className="hidden" />
+                  <span className="text-sm text-primary font-medium">Browse files</span>
+                </label>
+
+                {formData.uploadedCard ? (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                    <div className="relative h-40 w-full">
+                      <Image
+                        src={formData.uploadedCard}
+                        alt="Uploaded invitation reference"
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between px-3 py-2 text-xs text-muted-foreground">
+                      <span>Reference card loaded</span>
+                      <button
+                        type="button"
+                        className="text-primary hover:underline"
+                        onClick={() => setFormData((prev) => ({ ...prev, uploadedCard: "" }))}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Event Title</label>
                 <Input 
                   name="title" 
                   value={formData.title} 
                   onChange={handleChange} 
                   placeholder="e.g. Sarah's 25th Birthday" 
+                  className="bg-black/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Host / Family Name</label>
+                <Input
+                  name="hostName"
+                  value={formData.hostName}
+                  onChange={handleChange}
+                  placeholder="e.g. Sarah & James"
                   className="bg-black/20"
                 />
               </div>
@@ -96,7 +165,8 @@ export default function CreateInvitationPage() {
                   value={formData.message} 
                   onChange={handleChange} 
                   placeholder="Join us to celebrate..."
-                  className="flex w-full rounded-md border border-input bg-black/20 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[120px] resize-none"
+                  className="flex w-full rounded-md border border-input bg-black/20 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+                  style={{ minHeight: 120 }}
                 />
               </div>
               
