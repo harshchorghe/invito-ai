@@ -82,31 +82,35 @@ export default function PreviewPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-2xl"
+          className="w-full max-w-6xl mx-auto"
         >
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold capitalize text-white mb-2">You're Invited!</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl font-bold capitalize text-white mb-3">You're Invited!</h1>
+            <p className="text-muted-foreground text-lg">
               {invitation.data.hostName ? `${invitation.data.hostName} sent you this invitation.` : "Check out this beautiful invitation."}
             </p>
           </div>
 
-          <div className="flex items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-6 md:p-12 shadow-2xl backdrop-blur-sm">
-            <InvitationArtwork
-              data={invitation.data}
-              type={invitation.type}
-              className={`relative flex aspect-[3/4] w-full max-w-[520px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${
-                invitation.data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"
-              }`}
-            />
-          </div>
+          <div className={`grid gap-8 items-stretch ${invitation.data.venue ? 'lg:grid-cols-2' : 'max-w-2xl mx-auto'}`}>
+            <div className="flex items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-6 md:p-10 shadow-2xl backdrop-blur-sm w-full h-full">
+              <InvitationArtwork
+                data={invitation.data}
+                type={invitation.type}
+                className={`relative flex aspect-[3/4] w-full max-w-[480px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${
+                  invitation.data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"
+                }`}
+              />
+            </div>
 
-          {invitation.data.venue && (
-            <VenueMap venue={invitation.data.venue} />
-          )}
+            {invitation.data.venue && (
+              <div className="w-full h-full flex flex-col min-h-[400px]">
+                <VenueMap venue={invitation.data.venue} />
+              </div>
+            )}
+          </div>
         </motion.div>
       </div>
     </div>

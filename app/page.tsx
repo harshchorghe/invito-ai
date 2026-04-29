@@ -1,11 +1,108 @@
 "use client";
 
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { Sparkles, Calendar, Video, Download } from "lucide-react";
+import { Sparkles, Calendar, Video, Download, MapPin, Clock } from "lucide-react";
+import { InvitationArtwork } from "@/components/InvitationArtwork";
+import type { TemplateStyle } from "@/lib/templates";
 
 export default function LandingPage() {
+  const demoTemplates = [
+    {
+      id: "elegant",
+      label: "Elegant Gold",
+      color: "#D4AF37",
+      data: {
+        title: "Sarah & James",
+        hostName: "Together with their families",
+        date: "2026-10-24",
+        time: "16:00",
+        venue: "The Grand Plaza Hotel, NY",
+        message: "Join us as we celebrate our wedding day",
+        themeColor: "#D4AF37",
+        template: "elegant" as TemplateStyle,
+        uploadedCard: ""
+      }
+    },
+    {
+      id: "indian",
+      label: "Indian Traditional",
+      color: "#ffdf00",
+      data: {
+        title: "Priya & Rahul",
+        hostName: "The Sharma Family",
+        date: "2026-11-15",
+        time: "19:00",
+        venue: "Taj Palace, Mumbai",
+        message: "Inviting you to grace the auspicious occasion",
+        themeColor: "#ffdf00",
+        template: "indian" as TemplateStyle,
+        uploadedCard: ""
+      }
+    },
+    {
+      id: "modern",
+      label: "Modern Minimal",
+      color: "#3b82f6",
+      data: {
+        title: "Alex's 30th",
+        hostName: "Alex & Friends",
+        date: "2026-08-12",
+        time: "20:00",
+        venue: "Skyline Lounge, Downtown",
+        message: "Let's party all night!",
+        themeColor: "#3b82f6",
+        template: "modern" as TemplateStyle,
+        uploadedCard: ""
+      }
+    },
+    {
+      id: "floral",
+      label: "Floral Elegance",
+      color: "#2d4a22",
+      data: {
+        title: "Emma's Baby Shower",
+        hostName: "The Smith Family",
+        date: "2026-09-05",
+        time: "14:00",
+        venue: "Botanical Gardens",
+        message: "Celebrating our new arrival",
+        themeColor: "#2d4a22",
+        template: "floral" as TemplateStyle,
+        uploadedCard: ""
+      }
+    },
+    {
+      id: "classic",
+      label: "Classic Black & White",
+      color: "#000000",
+      data: {
+        title: "Annual Gala",
+        hostName: "Invito Corp",
+        date: "2026-12-10",
+        time: "18:30",
+        venue: "Grand Ballroom, City Center",
+        message: "A night of celebration and awards",
+        themeColor: "#000000",
+        template: "classic" as TemplateStyle,
+        uploadedCard: ""
+      }
+    }
+  ];
+
+  const [currentDemoIdx, setCurrentDemoIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentDemoIdx((prev) => (prev + 1) % demoTemplates.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const activeDemo = demoTemplates[currentDemoIdx];
+
   const features = [
     {
       icon: <Calendar className="w-6 h-6 text-primary" />,
@@ -71,23 +168,106 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        {/* Hero Image Mockup */}
+        {/* Hero Image Mockup - Live Demo */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="mt-20 w-full max-w-5xl mx-auto rounded-xl border border-white/10 glass p-2 shadow-2xl relative"
+          className="mt-20 w-full max-w-5xl mx-auto rounded-xl border border-white/10 glass p-4 md:p-8 shadow-2xl relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent rounded-xl opacity-50"></div>
-          <div className="aspect-[16/9] bg-zinc-900 rounded-lg overflow-hidden relative flex items-center justify-center">
-            {/* Mockup content */}
-            <div className="text-center">
-              <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/50">
-                <Sparkles className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Interactive Preview</h3>
-              <p className="text-zinc-400">Design Canvas goes here</p>
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-xl opacity-50"></div>
+          
+          <div className="relative grid md:grid-cols-2 gap-8 items-center bg-zinc-950/50 rounded-lg overflow-hidden border border-white/5 p-8">
+            
+            {/* Left side: Animated UI representation */}
+            <div className="space-y-6 relative z-10 hidden md:block">
+              <motion.div 
+                animate={{ y: [0, -10, 0] }} 
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="glass border border-primary/20 bg-primary/5 p-4 rounded-xl max-w-xs shadow-lg backdrop-blur-md"
+              >
+                <div className="text-xs text-primary font-medium mb-1 uppercase tracking-wider">Template Selected</div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeDemo.id + "-label"}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="font-semibold text-lg"
+                  >
+                    {activeDemo.label}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+
+              <motion.div 
+                animate={{ y: [0, 10, 0] }} 
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="glass border border-white/10 bg-white/5 p-4 rounded-xl max-w-xs ml-12 shadow-lg backdrop-blur-md"
+              >
+                <div className="flex items-center gap-3">
+                  <AnimatePresence mode="wait">
+                    <motion.div 
+                      key={activeDemo.id + "-color"}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="w-10 h-10 rounded-full border-2 border-white/20 shadow-inner"
+                      style={{ backgroundColor: activeDemo.color }}
+                    ></motion.div>
+                  </AnimatePresence>
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Theme Color</div>
+                    <div className="font-semibold flex items-center gap-2">
+                      Dynamic <Sparkles size={14} className="text-primary"/>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                animate={{ y: [0, -5, 0] }} 
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                className="glass border border-white/10 bg-white/5 p-4 rounded-xl max-w-xs shadow-lg backdrop-blur-md"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin size={16} className="text-primary" />
+                  <span className="text-sm font-medium">Smart Maps Integration</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-primary" />
+                  <span className="text-sm font-medium">Auto-Formatting</span>
+                </div>
+              </motion.div>
             </div>
+
+            {/* Right side: Live Artwork */}
+            <div className="flex justify-center md:justify-end relative">
+              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full scale-75"></div>
+              
+              <motion.div
+                whileHover={{ scale: 1.02, rotateY: -5 }}
+                className="perspective-1000 w-full flex justify-center md:justify-end"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeDemo.id}
+                    initial={{ opacity: 0, scale: 0.95, rotateY: 10 }}
+                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, rotateY: -10 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <InvitationArtwork
+                      data={activeDemo.data}
+                      type="wedding"
+                      className="relative flex aspect-[3/4] w-full max-w-[380px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/20 p-8 text-center shadow-2xl bg-zinc-900 text-white transform-gpu"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            </div>
+            
           </div>
         </motion.div>
       </section>

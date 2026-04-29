@@ -149,8 +149,8 @@ export default function VenueMap({ venue }: VenueMapProps) {
   }
 
   return (
-    <div className="w-full mt-8">
-      <div className="glass border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+    <div className="w-full h-full">
+      <div className="glass border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-full">
         <div className="p-4 bg-white/5 border-b border-white/10 flex justify-between items-center flex-wrap gap-4">
           <div>
             <h3 className="font-semibold flex items-center gap-2">
