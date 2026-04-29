@@ -8,7 +8,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
+import { INVITATION_TEMPLATES, type TemplateStyle } from "../lib/templates";
 import { TemplateDecorations } from "./Decorations";
 
 export type InvitationPreviewData = {

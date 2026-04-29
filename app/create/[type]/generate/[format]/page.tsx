@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { GeneratedInvitation } from "@/components/GeneratedInvitation";
 import { DEFAULT_INVITATION_DRAFT, loadInvitationDraft, type InvitationOutputFormat } from "@/lib/invitationDraft";
@@ -17,15 +17,19 @@ export default function GeneratedInvitationPage() {
     return validFormats.includes(rawFormat as InvitationOutputFormat) ? (rawFormat as InvitationOutputFormat) : "image";
   }, [rawFormat]);
 
-  const [data] = useState(() => {
-    if (typeof window === "undefined") {
-      return DEFAULT_INVITATION_DRAFT;
-    }
+  const [data, setData] = useState(() => DEFAULT_INVITATION_DRAFT);
+  const [isMounted, setIsMounted] = useState(false);
 
-    return loadInvitationDraft(type);
-  });
+  useEffect(() => {
+    setData(loadInvitationDraft(type));
+    setIsMounted(true);
+  }, [type]);
 
   const hasDraft = useMemo(() => JSON.stringify(data) !== JSON.stringify(DEFAULT_INVITATION_DRAFT), [data]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   if (!hasDraft) {
     return (

@@ -9,7 +9,8 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { auth, firebaseConfigError, firebaseReady } from "@/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db, firebaseConfigError, firebaseReady } from "@/lib/firebase";
 
 type AuthContextValue = {
   user: User | null;
@@ -56,6 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const displayName = name.trim();
     if (displayName) {
       await updateProfile(userCredential.user, { displayName });
+    }
+
+    if (db) {
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: displayName || email.split("@")[0],
+        email,
+        createdAt: serverTimestamp(),
+      });
     }
   };
 

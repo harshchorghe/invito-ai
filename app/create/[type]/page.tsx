@@ -19,10 +19,17 @@ export default function CreateInvitationPage() {
 
   const [formData, setFormData] = useState(() => loadInvitationDraft(type));
   const [outputFormat, setOutputFormat] = useState<InvitationOutputFormat>("image");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    saveInvitationDraft(type, formData);
-  }, [formData, type]);
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      saveInvitationDraft(type, formData);
+    }
+  }, [formData, type, isMounted]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -80,6 +87,8 @@ export default function CreateInvitationPage() {
     saveInvitationDraft(type, formData);
     router.push(`/create/${type}/generate/${outputFormat}`);
   };
+
+  if (!isMounted) return null;
 
   return (
     <div className="flex-1 w-full mx-auto p-6 h-[calc(100vh-64px)]" style={{ maxWidth: 1600 }}>
