@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -53,7 +53,7 @@ export default function CreateInvitationPage() {
     value: InvitationOutputFormat;
     label: string;
     description: string;
-    icon: JSX.Element;
+    icon: ReactNode;
   }> = [
     {
       value: "image",
