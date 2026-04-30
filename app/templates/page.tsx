@@ -71,9 +71,14 @@ export default function TemplatesPage() {
               </div>
 
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
-                <Link href={`/templates/preview?template=${tpl.id}`}>
-                  <Button variant="default" className="w-32">Preview</Button>
-                </Link>
+                <div className="flex flex-col gap-3">
+                  <Link href={`/create?template=${tpl.id}`}>
+                    <Button variant="default" className="w-32">Use</Button>
+                  </Link>
+                  <Link href={`/templates/preview?template=${tpl.id}`}>
+                    <Button variant="secondary" className="w-32">Preview</Button>
+                  </Link>
+                </div>
               </div>
             </div>
             <div className="flex justify-between items-center px-1">

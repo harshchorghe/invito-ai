@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import React from 'react'
 import templates from '@/templates'
 import PreviewEditor from '@/components/PreviewEditor'
+import { Button } from '@/components/ui/Button'
 
 export default function Page({ searchParams }: { searchParams?: { template?: string } }) {
   const id = searchParams?.template
@@ -24,6 +26,11 @@ export default function Page({ searchParams }: { searchParams?: { template?: str
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: template.font }}>{template.name}</h1>
           <p className="text-sm text-slate-500 mt-2">Category: {template.category}</p>
+          <div className="mt-4">
+            <Link href={`/create?template=${template.id}`}>
+              <Button className="w-full sm:w-auto">Use this template</Button>
+            </Link>
+          </div>
           <PreviewEditor template={template} />
         </div>
       </div>
