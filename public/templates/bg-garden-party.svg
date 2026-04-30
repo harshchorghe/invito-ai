@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="100%" height="100%" fill="#ecfccb"/>
+  <ellipse cx="300" cy="300" rx="220" ry="120" fill="#bbf7d0" />
+  <text x="50%" y="50%" font-family="Montserrat, sans-serif" font-size="40" fill="#14532d" text-anchor="middle" alignment-baseline="central">Garden Party Preview</text>
+</svg>

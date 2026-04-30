@@ -88,7 +88,7 @@ export default function PreviewPage() {
           className="w-full max-w-6xl mx-auto"
         >
           <div className="mb-10 text-center">
-            <h1 className="text-4xl font-bold capitalize text-white mb-3">You're Invited!</h1>
+            <h1 className="text-4xl font-bold capitalize text-white mb-3">You&apos;re Invited!</h1>
             <p className="text-muted-foreground text-lg">
               {invitation.data.hostName ? `${invitation.data.hostName} sent you this invitation.` : "Check out this beautiful invitation."}
             </p>

@@ -131,7 +131,12 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
                         <Clock size={12}/> 
-                        {invite.createdAt?.toDate ? new Date(invite.createdAt.toDate()).toLocaleDateString() : 'Just now'}
+                        {invite.createdAt &&
+                        typeof invite.createdAt === "object" &&
+                        "toDate" in invite.createdAt &&
+                        typeof invite.createdAt.toDate === "function"
+                          ? new Date(invite.createdAt.toDate()).toLocaleDateString()
+                          : "Just now"}
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
                         {invite.type}

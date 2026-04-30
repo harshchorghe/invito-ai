@@ -20,7 +20,6 @@ export default function CreateInvitationPage() {
 
   const [formData, setFormData] = useState(() => loadInvitationDraft(type));
   const [outputFormat, setOutputFormat] = useState<InvitationOutputFormat>("image");
-  const [isMounted, setIsMounted] = useState(false);
 
   const [venueSearch, setVenueSearch] = useState("");
   const [venueResults, setVenueResults] = useState<{ display_name: string }[]>([]);
@@ -28,8 +27,6 @@ export default function CreateInvitationPage() {
   const [showVenueResults, setShowVenueResults] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       const editId = searchParams.get("edit");
@@ -46,18 +43,11 @@ export default function CreateInvitationPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted) {
-      saveInvitationDraft(type, formData);
-      if (!venueSearch && formData.venue) {
-        setVenueSearch(formData.venue);
-      }
-    }
-  }, [formData, type, isMounted]);
+    saveInvitationDraft(type, formData);
+  }, [formData, type]);
 
   useEffect(() => {
     if (!venueSearch || venueSearch === formData.venue) {
-      setVenueResults([]);
-      setShowVenueResults(false);
       return;
     }
 
@@ -135,8 +125,6 @@ export default function CreateInvitationPage() {
     saveInvitationDraft(type, formData);
     router.push(`/create/${type}/generate/${outputFormat}`);
   };
-
-  if (!isMounted) return null;
 
   return (
     <div className="flex-1 w-full mx-auto p-6 h-[calc(100vh-64px)]" style={{ maxWidth: 1600 }}>
@@ -245,7 +233,7 @@ export default function CreateInvitationPage() {
                   value={venueSearch}
                   onChange={(e) => {
                     setVenueSearch(e.target.value);
-                    handleChange({ target: { name: 'venue', value: e.target.value } } as any);
+                    setFormData((prev) => ({ ...prev, venue: e.target.value }));
                   }}
                   onFocus={() => {
                      if (venueResults.length > 0) setShowVenueResults(true);

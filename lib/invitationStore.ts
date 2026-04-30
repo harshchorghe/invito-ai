@@ -1,7 +1,11 @@
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, where, deleteDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, where, deleteDoc, type FieldValue } from "firebase/firestore";
 import { db } from "./firebase";
 import type { InvitationPreviewData } from "@/components/InvitationScene";
 import type { InvitationOutputFormat } from "./invitationDraft";
+
+type FirestoreTimestampLike = {
+  toDate?: () => Date;
+} | FieldValue;
 
 export type StoredInvitation = {
   id?: string;
@@ -9,7 +13,7 @@ export type StoredInvitation = {
   type: string;
   format: InvitationOutputFormat;
   data: InvitationPreviewData;
-  createdAt: any;
+  createdAt: FirestoreTimestampLike;
 };
 
 export const saveInvitationToDb = async (
@@ -106,7 +110,7 @@ export type UserInvitationMeta = {
   type: string;
   format: InvitationOutputFormat;
   title: string;
-  createdAt: any;
+  createdAt: FirestoreTimestampLike;
 };
 
 export const getUserInvitations = async (userId: string): Promise<UserInvitationMeta[]> => {
