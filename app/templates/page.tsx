@@ -1,65 +1,139 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import { motion } from "framer-motion";
+import { TemplateBackdrop } from "@/components/TemplateBackdrop";
+import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
 
-const templates = [
-  { id: "wedding", title: "Classic Wedding", type: "Wedding", color: "bg-amber-100", textColor: "text-amber-900" },
-  { id: "birthday", title: "Neon Birthday", type: "Birthday", color: "bg-fuchsia-200", textColor: "text-fuchsia-900" },
-  { id: "opening", title: "Grand Opening", type: "Corporate", color: "bg-blue-100", textColor: "text-blue-900" },
-  { id: "custom", title: "Minimalist Event", type: "Custom", color: "bg-zinc-200", textColor: "text-zinc-900" },
-  { id: "wedding2", title: "Floral Romance", type: "Wedding", color: "bg-rose-100", textColor: "text-rose-900" },
-  { id: "birthday2", title: "Kids Party", type: "Birthday", color: "bg-green-200", textColor: "text-green-900" },
+const templateStarters = [
+  {
+    id: "free-ready-made" as const,
+    step: "1. Free ready-made",
+    title: "Free ready-made backgrounds (fastest)",
+    summary: "Fastest option when you want a polished invitation immediately.",
+    template: "elegant" as TemplateStyle,
+    badge: "Fastest",
+    details: ["Use for wedding invitation background", "Best when you want quick results with no setup"],
+  },
+  {
+    id: "ai-generated" as const,
+    step: "2. AI generated",
+    title: "Generate backgrounds with AI",
+    summary: "Use a rich, custom look for premium-style invitations.",
+    template: "indian" as TemplateStyle,
+    badge: "Best visual depth",
+    details: ["Use for luxury, royal, floral style", "Best when your source image comes from DALL-E or Leonardo"],
+  },
+  {
+    id: "css-backgrounds" as const,
+    step: "3. CSS only",
+    title: "Dynamic CSS backgrounds",
+    summary: "Lightweight gradients that stay editable and load fast.",
+    template: "modern" as TemplateStyle,
+    badge: "Lightweight",
+    details: ["No image files required", "Perfect when you want speed and flexibility"],
+  },
+  {
+    id: "image-overlay" as const,
+    step: "4. Image + overlay",
+    title: "Image + overlay (pro level)",
+    summary: "Use a background image and dark overlay to keep text readable.",
+    template: "floral" as TemplateStyle,
+    badge: "Pro look",
+    details: ["Best when you want a premium background photo", "Overlay keeps invitation text readable"],
+  },
 ];
 
 export default function TemplatesPage() {
   return (
-    <div className="flex-1 max-w-7xl mx-auto w-full p-6 pt-12 pb-24">
-      <div className="text-center mb-16">
-        <motion.h1 
+    <div className="flex-1 w-full px-6 pt-12 pb-24">
+      <div className="mx-auto flex max-w-7xl flex-col gap-10">
+        <div className="text-center">
+          <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-bold mb-4"
+          className="text-4xl font-bold tracking-tight md:text-5xl"
         >
-          Beautiful Templates for Every Occasion
+          4 simple ways to create attractive backgrounds
         </motion.h1>
-        <motion.p 
+          <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-xl text-muted-foreground max-w-2xl mx-auto"
+          className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground"
         >
-          Start with a professionally designed template and make it your own.
+          Pick one method, open it in /create, and you will get the exact mapped preset.
         </motion.p>
-      </div>
+        </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {templates.map((tpl, idx) => (
-          <motion.div
+        <div className="grid gap-6 lg:grid-cols-2">
+          {templateStarters.map((tpl, idx) => (
+            <motion.div
             key={idx}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.1 }}
             whileHover={{ y: -5 }}
-            className="group"
+            className="group rounded-[28px] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-sm"
           >
-            <div className={`aspect-[3/4] ${tpl.color} rounded-2xl mb-4 relative overflow-hidden shadow-lg border border-white/10 flex flex-col items-center justify-center p-8 text-center`}>
-              <h3 className={`text-2xl font-bold ${tpl.textColor} mb-2`}>{tpl.title}</h3>
-              <p className={`${tpl.textColor} opacity-70`}>Join us to celebrate...</p>
-              
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 backdrop-blur-sm">
-                <Link href={`/create/${tpl.id.replace(/[0-9]/g, '')}`}>
-                  <Button variant="default" className="w-32">Use Template</Button>
-                </Link>
+            <div
+              className="relative overflow-hidden rounded-3xl border border-white/10 p-6 shadow-xl"
+            >
+              <TemplateBackdrop template={tpl.template} variant="gallery" />
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="relative z-10 flex min-h-80 flex-col justify-between rounded-2xl border border-white/15 bg-black/15 p-5 backdrop-blur-[1px]">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-white/75">{tpl.step}</p>
+                    <p className="text-xs uppercase tracking-[0.35em] text-white/70">{tpl.badge}</p>
+                    <h3 className="mt-3 max-w-xs text-2xl font-semibold text-white">{tpl.title}</h3>
+                    <p className="mt-2 text-xs text-white/80">
+                      Opens preset: <span className="font-semibold">{INVITATION_TEMPLATES[tpl.template].label}</span>
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/80">
+                    {tpl.template}
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-white/85">
+                  <p className="max-w-sm text-sm leading-6">{tpl.summary}</p>
+                  <ul className="space-y-2 text-sm">
+                    {tpl.details.map((detail) => (
+                      <li key={detail} className="flex items-start gap-2">
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 pt-4">
+                  <div className="h-px flex-1 bg-white/20" />
+                  <Link
+                    href={`/create/custom?template=${tpl.template}`}
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.sessionStorage.setItem("invito:pending-template", tpl.template);
+                      }
+                    }}
+                    className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-white/90"
+                  >
+                    Open in Create
+                  </Link>
+                </div>
               </div>
-            </div>
-            <div className="flex justify-between items-center px-1">
-              <h3 className="font-semibold text-lg">{tpl.title}</h3>
-              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{tpl.type}</span>
             </div>
           </motion.div>
         ))}
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Flow stays simple.</p>
+          <p className="mt-2">
+            Choose a background method here, open it in <Link href="/create/custom" className="text-primary hover:underline">/create</Link>, then edit details and generate.
+          </p>
+        </div>
       </div>
     </div>
   );

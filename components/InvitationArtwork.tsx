@@ -5,17 +5,62 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import type { InvitationPreviewData } from "@/components/InvitationScene";
 import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
+import type { AnimationPreset } from "@/lib/animations";
 import { TemplateDecorations } from "./Decorations";
+import { TemplateBackdrop } from "./TemplateBackdrop";
 
 type InvitationArtworkProps = {
   data: InvitationPreviewData;
   type: string;
   className?: string;
+  animated?: boolean;
+  animationType?: AnimationPreset;
+};
+
+const getElementAnimation = (animated: boolean, animationType: AnimationPreset) => {
+  if (!animated || animationType === "none") {
+    return {
+      title: { animate: {} },
+      message: { animate: {} },
+      details: { animate: {} },
+    };
+  }
+
+  if (animationType === "pulse-glow") {
+    return {
+      title: { animate: { opacity: [0.9, 1, 0.9] }, transition: { duration: 2.4, repeat: Infinity, ease: "easeInOut" } },
+      message: { animate: { opacity: [0.8, 0.95, 0.8] }, transition: { duration: 2.8, repeat: Infinity, ease: "easeInOut" } },
+      details: { animate: { opacity: [0.85, 1, 0.85] }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } },
+    };
+  }
+
+  if (animationType === "slow-tilt") {
+    return {
+      title: { animate: { rotate: [-0.7, 0.7, -0.7] }, transition: { duration: 7, repeat: Infinity, ease: "easeInOut" } },
+      message: { animate: { y: [-2, 2, -2] }, transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } },
+      details: { animate: { y: [0, -2, 0] }, transition: { duration: 5.5, repeat: Infinity, ease: "easeInOut" } },
+    };
+  }
+
+  if (animationType === "subtle-pan") {
+    return {
+      title: { animate: { x: [-2, 2, -2] }, transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } },
+      message: { animate: { x: [2, -2, 2] }, transition: { duration: 6.6, repeat: Infinity, ease: "easeInOut" } },
+      details: { animate: { y: [0, -1, 0] }, transition: { duration: 5.8, repeat: Infinity, ease: "easeInOut" } },
+    };
+  }
+
+  return {
+    title: { animate: { y: [0, -3, 0] }, transition: { duration: 4.8, repeat: Infinity, ease: "easeInOut" } },
+    message: { animate: { y: [0, 2, 0] }, transition: { duration: 5.2, repeat: Infinity, ease: "easeInOut" } },
+    details: { animate: { y: [0, -1, 0] }, transition: { duration: 4.2, repeat: Infinity, ease: "easeInOut" } },
+  };
 };
 
 export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtworkProps>(
-  function InvitationArtwork({ data, type, className }, ref) {
+  function InvitationArtwork({ data, type, className, animated = true, animationType = "float-blobs" }, ref) {
     const config = INVITATION_TEMPLATES[data.template as TemplateStyle] || INVITATION_TEMPLATES.modern;
+    const elementAnimation = getElementAnimation(animated, animationType);
 
     return (
       <motion.div
@@ -24,11 +69,11 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
         animate={{ opacity: 1, scale: 1 }}
         className={className}
         style={{ 
-          backgroundColor: data.themeColor || config.fallbackBackground,
           color: config.foreground,
           fontFamily: config.fontFamily
         }}
       >
+        <TemplateBackdrop template={config.id} variant="editor" animated={animated} animationType={animationType} />
         {data.uploadedCard ? (
           <div className="absolute inset-0">
             <Image
@@ -38,10 +83,11 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
               unoptimized
               className="object-cover opacity-20"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/40" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/10 to-black/40" />
           </div>
         ) : null}
         <TemplateDecorations template={config.id} color={config.foreground} />
+        <div className="absolute inset-0 bg-black/5" />
 
         <motion.div
           key={data.title}
@@ -53,17 +99,31 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
             {type} invitation
           </div>
 
-          <h1 className="mb-8 w-full break-words text-4xl font-bold" style={{ fontFamily: config.fontFamily }}>
+          <motion.h1
+            className="mb-8 w-full wrap-break-word text-4xl font-bold"
+            style={{ fontFamily: config.fontFamily }}
+            animate={elementAnimation.title.animate}
+            transition={(elementAnimation.title as any).transition}
+          >
             {data.title || "Your Event Title"}
-          </h1>
+          </motion.h1>
 
-          <p className="mb-8 whitespace-pre-line text-lg opacity-90" style={{ fontFamily: config.fontFamily }}>
+          <motion.p
+            className="mb-8 whitespace-pre-line text-lg opacity-90"
+            style={{ fontFamily: config.fontFamily }}
+            animate={elementAnimation.message.animate}
+            transition={(elementAnimation.message as any).transition}
+          >
             {data.message || "Join us to celebrate this special occasion with joy and happiness."}
-          </p>
+          </motion.p>
 
           <div className="mb-8 h-px w-16 bg-current opacity-30" />
 
-          <div className="space-y-4 text-center">
+          <motion.div
+            className="space-y-4 text-center"
+            animate={elementAnimation.details.animate}
+            transition={(elementAnimation.details as any).transition}
+          >
             <div>
               <p className="text-sm font-bold uppercase tracking-widest opacity-60">Hosted By</p>
               <p className="font-medium">{data.hostName || "Your Name"}</p>
@@ -80,7 +140,7 @@ export const InvitationArtwork = React.forwardRef<HTMLDivElement, InvitationArtw
               <p className="text-sm font-bold uppercase tracking-widest opacity-60">Where</p>
               <p className="font-medium">{data.venue || "Event Venue Location"}</p>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       </motion.div>
     );

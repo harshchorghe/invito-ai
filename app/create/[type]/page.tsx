@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, ReactNode } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/Input";
@@ -10,17 +10,28 @@ import { Button } from "@/components/ui/Button";
 import { FileText, Image as ImageIcon, Video as VideoIcon, MapPin, Loader2 } from "lucide-react";
 import type { InvitationOutputFormat } from "@/lib/invitationDraft";
 import { loadInvitationDraft, saveInvitationDraft } from "@/lib/invitationDraft";
-import { INVITATION_TEMPLATES } from "@/lib/templates";
+import { INVITATION_TEMPLATES, type TemplateStyle } from "@/lib/templates";
+import { ANIMATION_PRESETS, DEFAULT_ANIMATION, type AnimationPreset } from "@/lib/animations";
 import { getInvitationFromDb } from "@/lib/invitationStore";
+
+const templateStyles = Object.keys(INVITATION_TEMPLATES) as TemplateStyle[];
+
+const isTemplateStyle = (value: string | null): value is TemplateStyle => {
+  return Boolean(value && templateStyles.includes(value as TemplateStyle));
+};
 
 export default function CreateInvitationPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const type = params.type as string;
 
   const [formData, setFormData] = useState(() => loadInvitationDraft(type));
   const [outputFormat, setOutputFormat] = useState<InvitationOutputFormat>("image");
   const [isMounted, setIsMounted] = useState(false);
+  const [templateAnimated, setTemplateAnimated] = useState(true);
+  const [animationPreset, setAnimationPreset] = useState<AnimationPreset>(DEFAULT_ANIMATION);
+  const [showPresetBanner, setShowPresetBanner] = useState(true);
 
   const [venueSearch, setVenueSearch] = useState("");
   const [venueResults, setVenueResults] = useState<{ display_name: string }[]>([]);
@@ -29,21 +40,42 @@ export default function CreateInvitationPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    
-    if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const editId = searchParams.get("edit");
-      if (editId) {
-        getInvitationFromDb(editId).then(invite => {
-          if (invite && invite.data) {
-            setFormData({ ...invite.data, id: invite.id });
-            setOutputFormat(invite.format);
-            setVenueSearch(invite.data.venue || "");
-          }
-        }).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    const templateParam = searchParams.get("template");
+    const pendingTemplate = typeof window !== "undefined" ? window.sessionStorage.getItem("invito:pending-template") : null;
+
+    if (editId) {
+      getInvitationFromDb(editId).then(invite => {
+        if (invite && invite.data) {
+          setFormData({ ...invite.data, id: invite.id });
+          setOutputFormat(invite.format);
+          setVenueSearch(invite.data.venue || "");
+        }
+      }).catch(console.error);
+      return;
+    }
+
+    const selectedTemplate = isTemplateStyle(templateParam)
+      ? templateParam
+      : isTemplateStyle(pendingTemplate)
+        ? pendingTemplate
+        : null;
+
+    if (selectedTemplate) {
+      setFormData((prev) => ({
+        ...prev,
+        template: selectedTemplate,
+        themeColor: INVITATION_TEMPLATES[selectedTemplate].fallbackBackground,
+      }));
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("invito:pending-template");
       }
     }
-  }, []);
+  }, [searchParams, type]);
 
   useEffect(() => {
     if (isMounted) {
@@ -53,6 +85,12 @@ export default function CreateInvitationPage() {
       }
     }
   }, [formData, type, isMounted]);
+
+  useEffect(() => {
+    if (formData.animationType) {
+      setAnimationPreset(formData.animationType);
+    }
+  }, [formData.animationType]);
 
   useEffect(() => {
     if (!venueSearch || venueSearch === formData.venue) {
@@ -151,6 +189,15 @@ export default function CreateInvitationPage() {
           >
             <h1 className="text-2xl font-bold mb-2 capitalize">{type} Invitation</h1>
             <p className="text-muted-foreground mb-8">Customize your invitation details below.</p>
+            {isMounted && formData.template && showPresetBanner ? (
+              <div className="mb-4 rounded-lg border border-white/10 bg-black/20 p-3 flex items-center justify-between gap-4">
+                <div className="text-sm">
+                  <div className="text-xs text-muted-foreground">Opened from</div>
+                  <div className="font-medium">Templates — Preset: {INVITATION_TEMPLATES[formData.template].label}</div>
+                </div>
+                <button type="button" onClick={() => setShowPresetBanner(false)} className="text-sm text-muted-foreground hover:text-white">Dismiss</button>
+              </div>
+            ) : null}
             
             <div className="space-y-6">
               <div className="space-y-2">
@@ -350,6 +397,37 @@ export default function CreateInvitationPage() {
                 </div>
               </div>
 
+              {outputFormat === "mp4" ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Template Animation</label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={animationPreset}
+                        onChange={(e) => {
+                          const val = e.target.value as AnimationPreset;
+                          setAnimationPreset(val);
+                          setFormData(prev => ({ ...prev, animationType: val }));
+                        }}
+                        className="rounded-md bg-black/20 px-3 py-2"
+                      >
+                        {ANIMATION_PRESETS.map((p) => (
+                          <option key={p.id} value={p.id}>{p.label}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setTemplateAnimated((s) => !s)}
+                        className={`px-3 py-1 rounded-full border transition ${templateAnimated ? 'border-primary bg-primary/10 text-primary' : 'border-white/10 text-muted-foreground'}`}
+                      >
+                        {templateAnimated ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Choose an animation preset to apply to the preview. MP4 exports are recorded client-side now.</p>
+                  </div>
+                </div>
+              ) : null}
+
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-sm font-medium">Preview stays here.</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -372,7 +450,7 @@ export default function CreateInvitationPage() {
             animate={{ opacity: 1, x: 0 }}
             className="h-full"
           >
-            <CanvasPreview data={formData} type={type} />
+            <CanvasPreview data={formData} type={type} animated={outputFormat === 'mp4' ? templateAnimated : true} animationType={outputFormat === 'mp4' ? (animationPreset || 'float-blobs') : undefined} />
           </motion.div>
         </div>
         

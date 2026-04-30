@@ -12,6 +12,7 @@ export const DEFAULT_INVITATION_DRAFT: InvitationPreviewData = {
   themeColor: "#ffffff",
   template: "classic",
   uploadedCard: "",
+  animationType: "float-blobs",
 };
 
 const DRAFT_STORAGE_PREFIX = "invito:create-draft";

@@ -10,6 +10,8 @@ import {
 } from "remotion";
 import { INVITATION_TEMPLATES, type TemplateStyle } from "../lib/templates";
 import { TemplateDecorations } from "./Decorations";
+import { TemplateBackdrop } from "./TemplateBackdrop";
+import type { AnimationPreset } from "@/lib/animations";
 
 export type InvitationPreviewData = {
   id?: string;
@@ -22,6 +24,7 @@ export type InvitationPreviewData = {
   themeColor: string;
   template: string;
   uploadedCard: string;
+  animationType?: AnimationPreset;
 };
 
 type InvitationSceneProps = {
@@ -45,11 +48,11 @@ export function InvitationScene({ data, type }: InvitationSceneProps) {
   return (
     <AbsoluteFill
       style={{
-        background: `radial-gradient(circle at top, ${data.themeColor}44, ${fallbackBackground} 62%)`,
         color: foreground,
         fontFamily: config.fontFamily,
       }}
     >
+      <TemplateBackdrop template={config.id} variant="scene" />
       {data.uploadedCard ? (
         <AbsoluteFill>
           <Img

@@ -26,10 +26,12 @@ const formatLabels: Record<InvitationOutputFormat, string> = {
 
 export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInvitationProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const videoUrlRef = useRef<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoError, setVideoError] = useState<string | null>(null);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
+  const [recordingExtension, setRecordingExtension] = useState<"mp4" | "webm">("webm");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<BlobPart[]>([]);
 
   const { user } = useAuth();
   const [isSharing, setIsSharing] = useState(false);
@@ -85,11 +87,11 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
   };
 
   const handleDownloadVideo = () => {
-    if (!videoUrl) return;
+    if (!recordingUrl) return;
 
     const link = document.createElement("a");
-    link.href = videoUrl;
-    link.download = `invito-${type}-${Date.now()}.mp4`;
+    link.href = recordingUrl;
+    link.download = `invito-${type}-${Date.now()}.${recordingExtension}`;
     link.click();
   };
 
@@ -120,66 +122,67 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
     }
   };
 
+  // Previously server-side rendered via /api/render/video. That endpoint is removed
+  // in favor of client-side preview animations and an experimental screen-record flow.
   useEffect(() => {
-    if (format !== "mp4") {
+    if (format !== "mp4") return;
+    // Clear previous recording state
+    setRecordingUrl(null);
+    setRecordingError(null);
+  }, [data, format, type]);
+
+  const startRecording = async () => {
+    if (!canvasRef.current) {
+      setRecordingError("Preview not available to record.");
       return;
     }
 
-    let isActive = true;
+    try {
+      setRecordingError(null);
 
-    const renderVideo = async () => {
-      setIsGenerating(true);
-      setVideoError(null);
+      // Ask user to share the tab/window. Instruct to choose this tab for best result.
+      const stream = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
 
-      try {
-        const response = await fetch("/api/render/video", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ type, data }),
-        });
+      recordedChunksRef.current = [];
+      const mp4Mime = "video/mp4;codecs=avc1.42E01E,mp4a.40.2";
+      const webmMime = "video/webm;codecs=vp9";
+      const mime = MediaRecorder.isTypeSupported(mp4Mime) ? mp4Mime : webmMime;
+      setRecordingExtension(mime.includes("mp4") ? "mp4" : "webm");
+      const recorder = new MediaRecorder(stream, { mimeType: mime });
+      recorderRef.current = recorder;
 
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
+      recorder.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0) recordedChunksRef.current.push(ev.data);
+      };
 
-        const blob = await response.blob();
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: mime });
         const url = URL.createObjectURL(blob);
+        setRecordingUrl(url);
+        // stop all tracks from getDisplayMedia
+        stream.getTracks().forEach((t) => t.stop());
+        setIsGenerating(false);
+      };
 
-        if (!isActive) {
-          URL.revokeObjectURL(url);
-          return;
-        }
+      recorder.onerror = (ev) => {
+        setRecordingError(String((ev as any).error || 'Recording error'));
+        setIsGenerating(false);
+      };
 
-        if (videoUrlRef.current) {
-          URL.revokeObjectURL(videoUrlRef.current);
-        }
+      recorder.start();
+      setIsGenerating(true);
+    } catch (err) {
+      setRecordingError(err instanceof Error ? err.message : 'Failed to start recording');
+      setIsGenerating(false);
+    }
+  };
 
-        videoUrlRef.current = url;
-        setVideoUrl(url);
-      } catch (error) {
-        if (isActive) {
-          setVideoError(error instanceof Error ? error.message : "Failed to render video.");
-        }
-      } finally {
-        if (isActive) {
-          setIsGenerating(false);
-        }
-      }
-    };
-
-    void renderVideo();
-
-    return () => {
-      isActive = false;
-
-      if (videoUrlRef.current) {
-        URL.revokeObjectURL(videoUrlRef.current);
-        videoUrlRef.current = null;
-      }
-    };
-  }, [data, format, type]);
+  const stopRecording = () => {
+    const rec = recorderRef.current;
+    if (rec && rec.state !== 'inactive') {
+      rec.stop();
+    }
+  };
 
   const canDownload = format === "image" || format === "pdf";
 
@@ -204,30 +207,22 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/80 p-3">
               <div className="mb-3 flex items-center justify-between px-2">
                 <div>
-                  <p className="text-sm font-medium text-white">Rendered MP4 Preview</p>
-                  <p className="text-xs text-muted-foreground">This is the actual exported video generated on the server.</p>
+                  <p className="text-sm font-medium text-white">MP4 Preview (client-side)</p>
+                  <p className="text-xs text-muted-foreground">This preview uses the selected animation preset. Use screen-record to capture MP4.</p>
                 </div>
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">{formatLabels[format]}</span>
               </div>
 
               <div className="flex aspect-3/4 w-full items-center justify-center overflow-hidden rounded-xl bg-zinc-950">
-                {isGenerating || !videoUrl ? (
-                  <div className="flex flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
-                    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
-                    <span>{videoError ? "Video render failed" : "Rendering video..."}</span>
-                    {videoError ? <span className="max-w-[28rem] text-xs text-red-300">{videoError}</span> : null}
-                  </div>
-                ) : (
-                  <video
-                    src={videoUrl}
-                    controls
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="h-full w-full object-contain"
+                <div ref={canvasRef} className="w-full h-full flex items-center justify-center p-6">
+                  <InvitationArtwork
+                    data={data}
+                    type={type}
+                    className={`relative flex aspect-3/4 w-full max-w-2xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"}`}
+                    animated={true}
+                    animationType={data.animationType || "float-blobs"}
                   />
-                )}
+                </div>
               </div>
             </div>
           ) : (
@@ -236,7 +231,7 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
                 ref={canvasRef}
                 data={data}
                 type={type}
-                className={`relative flex aspect-[3/4] w-full max-w-2xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"}`}
+                className={`relative flex aspect-3/4 w-full max-w-2xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"}`}
               />
             </div>
           )}
@@ -249,7 +244,7 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
             <p className="mt-2 text-sm text-muted-foreground">
               {canDownload
                 ? "Download the generated invitation in the selected format."
-                : "MP4 output still needs server-side rendering, so the download action is not wired yet."}
+                : "MP4 output uses client-side recording from the preview animation."}
             </p>
           </div>
 
@@ -269,17 +264,27 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
                 {isGenerating ? "Generating..." : `Download ${formatLabels[format]}`}
               </Button>
             ) : (
-              <Button onClick={handleDownloadVideo} className="w-full gap-2" disabled={!videoUrl || isGenerating}>
-                <Download size={16} />
-                {isGenerating ? "Generating..." : "Download MP4"}
-              </Button>
+              <div className="space-y-2">
+                <Button onClick={startRecording} className="w-full gap-2" disabled={isGenerating}>
+                  <VideoIcon size={16} />
+                  {isGenerating ? "Recording..." : "Start Recording"}
+                </Button>
+                <Button variant="outline" onClick={stopRecording} className="w-full gap-2" disabled={!isGenerating}>
+                  Stop Recording
+                </Button>
+                <Button onClick={handleDownloadVideo} className="w-full gap-2" disabled={!recordingUrl || isGenerating}>
+                  <Download size={16} />
+                  Download MP4
+                </Button>
+                {recordingError ? <p className="text-xs text-red-300">{recordingError}</p> : null}
+              </div>
             )}
 
             <Button
               variant="outline"
               onClick={handleShare}
               className="w-full gap-2 mt-3"
-              disabled={isSharing || (format === "mp4" && (!videoUrl || isGenerating))}
+              disabled={isSharing || (format === "mp4" && (!recordingUrl || isGenerating))}
             >
               <Share2 size={16} />
               {isSharing ? "Creating Link..." : "Create Shareable Link"}
@@ -307,7 +312,7 @@ export function GeneratedInvitation({ data, type, format, onBack }: GeneratedInv
 
           {format === "mp4" ? (
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-muted-foreground">
-              The video above is rendered server-side, so you can both play it here and download the same MP4 file.
+              Element animations are applied to title, message, and details based on your animation preset.
             </div>
           ) : null}
         </div>

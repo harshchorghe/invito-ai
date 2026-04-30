@@ -7,9 +7,11 @@ import { InvitationArtwork } from "./InvitationArtwork";
 interface CanvasPreviewProps {
   data: InvitationPreviewData;
   type: string;
+  animated?: boolean;
+  animationType?: import("@/lib/animations").AnimationPreset;
 }
 
-export function CanvasPreview({ data, type }: CanvasPreviewProps) {
+export function CanvasPreview({ data, type, animated = true, animationType = undefined }: CanvasPreviewProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="mb-6 flex items-center justify-between">
@@ -25,6 +27,8 @@ export function CanvasPreview({ data, type }: CanvasPreviewProps) {
           <InvitationArtwork
             data={data}
             type={type}
+            animated={animated}
+            animationType={animationType}
             className={`relative flex aspect-[3/4] w-full max-w-[520px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 p-10 text-center shadow-2xl ${data.template === "modern" ? "bg-zinc-900 text-white" : "bg-white text-black"}`}
           />
         </div>
